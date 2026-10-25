@@ -1,0 +1,51 @@
+name: Apple Silicon App
+
+on:
+  push:
+    branches:
+      - cleanup/remove-promotional-artcraft-links
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apple-silicon:
+    name: Build Apple Silicon DMG
+    runs-on: macos-15
+    timeout-minutes: 120
+    env:
+      CARGO_INCREMENTAL: "0"
+      PDFCRAFT_BUILD_LABEL: "community"
+      MACOS_SIGN_IDENTITY: "-"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: community-apple-silicon
+      - name: Verify Rust project
+        run: |
+          cargo check --locked -p pdfcraft -p pdfcraft-cli --target aarch64-apple-darwin
+      - name: Build PdfCraft for Apple Silicon
+        run: |
+          bash packaging/macos/package.sh --arch aarch64
+      - name: Verify bundle architecture and signing
+        run: |
+          set -euo pipefail
+          app="target/macos-package/PdfCraft.app"
+          test -d "$app"
+          lipo -archs "$app/Contents/MacOS/PdfCraft" | grep -w arm64
+          codesign --verify --strict --deep "$app"
+          test -f "dist/release/pdfcraft-$(awk '/^\[workspace.package\]/{x=1;next} /^\[/{x=0} x && /^version =/{gsub(/"/,"",$3);print $3;exit}' Cargo.toml)-macos-aarch64.dmg"
+      - name: Upload Apple Silicon application
+        uses: actions/upload-artifact@v4
+        with:
+          name: PdfCraft-Apple-Silicon-DMG
+          path: |
+            dist/release/*macos-aarch64.dmg
+            dist/release/*macos-aarch64.zip
+          if-no-files-found: error
+          retention-days: 30
