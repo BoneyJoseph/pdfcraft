@@ -1,5 +1,4 @@
-//! Where PdfCraft and the ArtCraft community live on the web. One table, so the Help menu, the
-//! About dialog, the home screen, the CLI and the README agree.
+//! Project links for the PdfCraft community build.
 
 use icu_properties::props::Script;
 use std::path::{Path, PathBuf};
@@ -18,9 +17,7 @@ pub struct Link {
 }
 
 /// External Help/About links, without promotional community or subscription destinations.
-pub const LINKS: &[Link] = &[
-    Link { command: "help.github", label: "PdfCraft on GitHub", url: GITHUB, icon: "code-xml" },
-];
+pub const LINKS: &[Link] = &[Link { command: "help.github", label: "PdfCraft on GitHub", url: GITHUB, icon: "code-xml" }];
 
 pub fn for_command(id: &str) -> Option<&'static Link> {
     LINKS.iter().find(|l| l.command == id)
