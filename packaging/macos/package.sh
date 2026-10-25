@@ -102,7 +102,16 @@ echo "==> assembling $APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 # Executable and icon carry the display name (CFBundleExecutable / CFBundleIconFile).
 cp "$WORK/bin/pdfcraft" "$APP/Contents/MacOS/PdfCraft"
-cp "$ROOT/assets/app-icon/pdfcraft.icns" "$APP/Contents/Resources/PdfCraft.icns"
+# Render an original community-build icon, rather than shipping the upstream icon.
+ICON_DIR="$WORK/custom-icon.iconset"
+mkdir -p "$ICON_DIR"
+swift "$HERE/custom-icon.swift" "$WORK/custom-icon-1024.png"
+for edge in 16 32 128 256 512; do
+  sips -s format png -z "$edge" "$edge" "$WORK/custom-icon-1024.png" --out "$ICON_DIR/icon_${edge}x${edge}.png" >/dev/null
+  double=$((edge * 2))
+  sips -s format png -z "$double" "$double" "$WORK/custom-icon-1024.png" --out "$ICON_DIR/icon_${edge}x${edge}@2x.png" >/dev/null
+done
+iconutil -c icns "$ICON_DIR" -o "$APP/Contents/Resources/PdfCraft.icns"
 # The standard About panel (PdfCraft menu > About PdfCraft) shows Credits.rtf under the version:
 # the website and Discord links the in-app About dialog has (#1287).
 cp "$HERE/Credits.rtf" "$APP/Contents/Resources/Credits.rtf"
