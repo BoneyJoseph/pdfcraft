@@ -1,4 +1,4 @@
-name: Apple Silicon App
+name: Apple Silicon App (Lean)
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   apple-silicon:
-    name: Build Apple Silicon DMG
+    name: Build GUI-only Apple Silicon DMG
     runs-on: macos-15
     timeout-minutes: 120
     env:
@@ -26,12 +26,14 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: community-apple-silicon
+      - name: Validate packaging script
+        run: bash -n packaging/macos/package.sh
       - name: Verify Rust project
         run: |
-          cargo check --locked -p pdfcraft -p pdfcraft-cli --target aarch64-apple-darwin
+          cargo check --locked -p pdfcraft --target aarch64-apple-darwin
       - name: Build PdfCraft for Apple Silicon
         run: |
-          bash packaging/macos/package.sh --arch aarch64
+          bash packaging/macos/package.sh --arch aarch64 --app-only
       - name: Verify bundle architecture and signing
         run: |
           set -euo pipefail
@@ -43,9 +45,8 @@ jobs:
       - name: Upload Apple Silicon application
         uses: actions/upload-artifact@v4
         with:
-          name: PdfCraft-Apple-Silicon-DMG
+          name: PdfCraft-Apple-Silicon-Lean-DMG
           path: |
             dist/release/*macos-aarch64.dmg
-            dist/release/*macos-aarch64.zip
           if-no-files-found: error
           retention-days: 30
