@@ -47,6 +47,9 @@ mod updates;
 mod windows_manifest;
 
 /// Freedesktop app id: the `.desktop` file name and the hicolor icon name.
+#[cfg(target_os = "macos")]
+const APP_ID: &str = "com.boneyjoseph.pdfcraft";
+#[cfg(not(target_os = "macos"))]
 const APP_ID: &str = "ai.storyteller.pdfcraft";
 
 /// The app icon (assets/app-icon/README.md). macOS gets the version on Apple's icon grid, with a
